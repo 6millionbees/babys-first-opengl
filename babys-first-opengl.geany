@@ -28,12 +28,12 @@ long_line_behaviour=1
 long_line_column=72
 
 [files]
-current_page=1
-FILE_NAME_0=0;C++;0;EUTF-8;1;1;0;%2Fhome%2Fmillionbees%2FDocuments%2Fcode%2Fcpp%2Fprojects%2Ffirst-gl%2Fmain.cxx;0;4
-FILE_NAME_1=418;None;0;EUTF-8;1;1;0;%2Fhome%2Fmillionbees%2FDocuments%2Fcode%2Fcpp%2Fprojects%2Ffirst-gl%2Ffirst-gl.geany;0;4
+current_page=0
+FILE_NAME_0=4838;C++;0;EUTF-8;1;1;0;%2Fhome%2Fmillionbees%2FDocuments%2Fcode%2Fcpp%2Fprojects%2Fbabys-first-opengl%2Fmain.cxx;0;4
+FILE_NAME_1=121;GLSL;0;EUTF-8;1;1;0;%2Fhome%2Fmillionbees%2FDocuments%2Fcode%2Fcpp%2Fprojects%2Fbabys-first-opengl%2Fshaders%2Fvertex.glsl;0;2
 
 [VTE]
-last_dir=/home/millionbees
+last_dir=/home/millionbees/Documents/code/cpp/projects/babys-first-opengl
 
 [build-menu]
 C++FT_01_LB=_Build

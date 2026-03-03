@@ -26,6 +26,22 @@
 #include <GLFW/glfw3.h>
 #include <iostream>
 
+// I could not find a better way to do this sooooo...
+const char *vertexShaderSource = "#version 460 core\n"
+	"layout (location = 0) in vec3 aPos;\n"
+	"void main()\n"
+	"{\n"
+	"	gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
+	"}\0";
+
+const char *fragmentShaderSource = "#version 330 core\n"
+	"out vec4 FragColor;\n"
+	"void main()\n"
+	"{\n"
+	"    FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
+	"}\0";
+
+
 // This is an early definition for a function that tells GLFW what to
 // do when the window gets resized
 // In this one it resizes the viewport
@@ -57,6 +73,7 @@ int main(int argc, char **argv)
 		glfwTerminate();
 		return 1;
 	}
+
 	glfwMakeContextCurrent(window);
 	
 	// Trying to load glad
@@ -81,22 +98,65 @@ int main(int argc, char **argv)
 	// This is registers the framebuffer function with GLFW
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
-	// Woh Triangle
+	
+	// Woh Square
 	float vertices[] = {
 		-0.5f, -0.5f, 0.0f,
+		 0.5f, -0.5f, 0.0f,
+		 0.5f,  0.5f, 0.0f,
+		 0.5f,  0.5f, 0.0f,
 		-0.5f,  0.5f, 0.0f,
-		 0.0f,  0.5f, 0.0f,
+		-0.5f, -0.5f, 0.0f
 	};
 
+	// This creates the vertex shader
+	unsigned int vertexShader;
+	vertexShader = glCreateShader(GL_VERTEX_SHADER);
+	
+	// Assign the shader defined at the start of the file to the object above
+	glShaderSource(vertexShader, 1, &vertexShaderSource, 0);
+	glCompileShader(vertexShader);
+	
+	// fragement shader time
+	unsigned int fragmentShader;
+	fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+	glShaderSource(fragmentShader, 1, &fragmentShaderSource, 0);
+	glCompileShader(fragmentShader);
+	
+	// add the shaders together
+	unsigned int shaderProgram;
+	shaderProgram = glCreateProgram();
+	
+	glAttachShader(shaderProgram, vertexShader);
+	glAttachShader(shaderProgram, fragmentShader);
+	glLinkProgram(shaderProgram);
+	
+	glUseProgram(shaderProgram);
+	
+	// kill the shaders
+	glDeleteShader(vertexShader);
+	glDeleteShader(fragmentShader);
+	
 	// This is the Vertex Buffer Object
 	unsigned int VBO;
 	glGenBuffers(1, &VBO);
-	// Assignes buffer type
-	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 	
-	// Copies the vertex data to the buffer
-	glBufferData(GL_ARRAY_BUFFER, sizeof(verticies), vertices, GL_STATIC_DRAW);
+	// CREATE A VAO
+	unsigned int VAO;
+	glGenVertexArrays(1, &VAO);
+	
+	glBindVertexArray(VAO);
 
+	// Do stufffff
+	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+	// Copies the vertex data to the buffer
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+	
+	// Silly opengl, not even knowing what a vec3 is
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(0);
+	
+	
 	// LETS MAKE THE GOD-FORSAKEN WINDOW DO SOMETHING
 	// Main loop
 	glClearColor(0.25f, 0.3f, 0.3f, 1.0f);
@@ -107,6 +167,10 @@ int main(int argc, char **argv)
 		
 		// rendering commands here
 		glClear(GL_COLOR_BUFFER_BIT);
+		
+		glUseProgram(shaderProgram);
+		glBindVertexArray(VAO);
+		glDrawArrays(GL_TRIANGLES, 0, 6);
 		
 		// check and call events and swap the buffers
 		// whatever that means
