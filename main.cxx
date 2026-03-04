@@ -24,6 +24,7 @@
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+
 #include <iostream>
 
 // I could not find a better way to do this sooooo...
@@ -98,17 +99,7 @@ int main(int argc, char **argv)
 	// This is registers the framebuffer function with GLFW
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
-	
-	// Woh Square
-	float vertices[] = {
-		-0.5f, -0.5f, 0.0f,
-		 0.5f, -0.5f, 0.0f,
-		 0.5f,  0.5f, 0.0f,
-		 0.5f,  0.5f, 0.0f,
-		-0.5f,  0.5f, 0.0f,
-		-0.5f, -0.5f, 0.0f
-	};
-
+	// Shaders =========================================================
 	// This creates the vertex shader
 	unsigned int vertexShader;
 	vertexShader = glCreateShader(GL_VERTEX_SHADER);
@@ -131,30 +122,51 @@ int main(int argc, char **argv)
 	glAttachShader(shaderProgram, fragmentShader);
 	glLinkProgram(shaderProgram);
 	
-	glUseProgram(shaderProgram);
-	
 	// kill the shaders
 	glDeleteShader(vertexShader);
 	glDeleteShader(fragmentShader);
 	
-	// This is the Vertex Buffer Object
-	unsigned int VBO;
-	glGenBuffers(1, &VBO);
+	// Vertices & Indices ==============================================
+	// Woh Square
+	float vertices[] = {
+         0.5f,  0.5f, 0.0f,  // top right
+         0.5f, -0.5f, 0.0f,  // bottom right
+        -0.5f, -0.5f, 0.0f,  // bottom left
+        -0.5f,  0.5f, 0.0f   // top left 
+    };
 	
-	// CREATE A VAO
-	unsigned int VAO;
+	unsigned int indices[] = {
+		0, 1, 3,
+		1, 2, 3
+	};
+
+	// Create Buffer and Array objects
+	unsigned int VAO, VBO, EBO;
 	glGenVertexArrays(1, &VAO);
+	glGenBuffers(1, &VBO);
+	glGenBuffers(1, &EBO);
 	
 	glBindVertexArray(VAO);
-
-	// Do stufffff
-	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	// Copies the vertex data to the buffer
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 	
-	// Silly opengl, not even knowing what a vec3 is
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-	glEnableVertexAttribArray(0);
+	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+
+    // note that this is allowed, the call to glVertexAttribPointer registered VBO as the vertex attribute's bound vertex buffer object so afterwards we can safely unbind
+    glBindBuffer(GL_ARRAY_BUFFER, 0); 
+
+    // remember: do NOT unbind the EBO while a VAO is active as the bound element buffer object IS stored in the VAO; keep the EBO bound.
+    //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+    // You can unbind the VAO afterwards so other VAO calls won't accidentally modify this VAO, but this rarely happens. Modifying other
+    // VAOs requires a call to glBindVertexArray anyways so we generally don't unbind VAOs (nor VBOs) when it's not directly necessary.
+    glBindVertexArray(0); 
+	
 	
 	
 	// LETS MAKE THE GOD-FORSAKEN WINDOW DO SOMETHING
@@ -165,12 +177,15 @@ int main(int argc, char **argv)
 		// input
 		processInput(window);
 		
-		// rendering commands here
+		// Rendering stuff
+		
+		// Clears the Screen
 		glClear(GL_COLOR_BUFFER_BIT);
 		
 		glUseProgram(shaderProgram);
 		glBindVertexArray(VAO);
-		glDrawArrays(GL_TRIANGLES, 0, 6);
+		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+		glBindVertexArray(0);
 		
 		// check and call events and swap the buffers
 		// whatever that means
