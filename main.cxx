@@ -21,66 +21,56 @@
  * 
  */
 
-
+// OpenGL loaders
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
+// Math <3
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+#include <cmath>
+
+// Just for fun
 #include <iostream>
 
-// I could not find a better way to do this sooooo...
-const char *vertexShaderSource = "#version 460 core\n"
-	"layout (location = 0) in vec3 aPos;\n"
-	"void main()\n"
-	"{\n"
-	"	gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
-	"}\0";
-
-const char *fragmentShaderSource = "#version 330 core\n"
-	"out vec4 FragColor;\n"
-	"void main()\n"
-	"{\n"
-	"    FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
-	"}\0";
+// My stuff
+#include <mine/shader_s.h>
 
 
-// This is an early definition for a function that tells GLFW what to
-// do when the window gets resized
-// In this one it resizes the viewport
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
-
-// The inputter
 void processInput(GLFWwindow *window);
+
 
 int main(int argc, char **argv)
 {
+	// Initialization
+	// =================================================================
 	glfwInit();
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-	// glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); // For MacOS
 
+#ifdef __APPLE__
+	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); // For MacOS
+#endif
 
 	// This creates the window (this window object is important)
 	GLFWwindow* window = glfwCreateWindow(
-		800,
-		600,
-		"Oh God PLease Work",
-		0,
-		0
-	);
+		800, 600, "My Beautiful Daughter Named Golgotha", 0, 0);
 	if (!window) 
 	{
 		std::cout << "Failed to create GLFW window" << std::endl;
 		glfwTerminate();
 		return 1;
 	}
-
 	glfwMakeContextCurrent(window);
+	// This is registers the framebuffer function with GLFW
+	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 	
 	// Trying to load glad
-	// istg if this doesn't work I'll really do it this time
 	// gladLoadGLLoader() loads the OpenGL function pointers
-	// This is OS specific so we use glfwGetProcAddress from the version
+	// It's OS specific so we use glfwGetProcAddress from the version
 	// of GLFW we build for this OS to point to the correct dist of OpenGL
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
 	{
@@ -95,71 +85,65 @@ int main(int argc, char **argv)
 	// to the viewport
 	glViewport(0, 0, 800, 600);
 	
-	
-	// This is registers the framebuffer function with GLFW
-	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
 	// Shaders =========================================================
-	// This creates the vertex shader
-	unsigned int vertexShader;
-	vertexShader = glCreateShader(GL_VERTEX_SHADER);
+
+	Shader baseShader("shaders/vertex.glsl", "shaders/fragment.glsl");
 	
-	// Assign the shader defined at the start of the file to the object above
-	glShaderSource(vertexShader, 1, &vertexShaderSource, 0);
-	glCompileShader(vertexShader);
-	
-	// fragement shader time
-	unsigned int fragmentShader;
-	fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-	glShaderSource(fragmentShader, 1, &fragmentShaderSource, 0);
-	glCompileShader(fragmentShader);
-	
-	// add the shaders together
-	unsigned int shaderProgram;
-	shaderProgram = glCreateProgram();
-	
-	glAttachShader(shaderProgram, vertexShader);
-	glAttachShader(shaderProgram, fragmentShader);
-	glLinkProgram(shaderProgram);
-	
-	// kill the shaders
-	glDeleteShader(vertexShader);
-	glDeleteShader(fragmentShader);
-	
+
 	// Vertices & Indices ==============================================
 	// Woh Square
 	float vertices[] = {
-         0.5f,  0.5f, 0.0f,  // top right
-         0.5f, -0.5f, 0.0f,  // bottom right
-        -0.5f, -0.5f, 0.0f,  // bottom left
-        -0.5f,  0.5f, 0.0f   // top left 
+         0.5f,  0.5f, -0.5f,  // front top right
+         0.5f, -0.5f, -0.5f,  // front bottom right
+        -0.5f, -0.5f, -0.5f,  // front bottom left
+        -0.5f,  0.5f, -0.5f,  // front top left 
+		 0.5f,  0.5f,  0.5f,  // back top right
+         0.5f, -0.5f,  0.5f,  // back bottom right
+        -0.5f, -0.5f,  0.5f,  // back bottom left
+        -0.5f,  0.5f,  0.5f   // back top left 
+		
     };
-	
 	unsigned int indices[] = {
-		0, 1, 3,
-		1, 2, 3
+		0, 1, 3, // 1
+		1, 2, 3, // 1
+		
+		0, 1, 5, // 2
+		0, 4, 5, // 2
+		
+		2, 1, 5, // 3
+		2, 6, 7, // 3
+		
+		0, 3, 7, // 4
+		0, 4, 7, // 4
+		
+		2, 3, 7, // 5
+		2, 6, 7, // 5
+		
+		4, 5, 7, // 6
+		5, 6, 7 //  6
+		
 	};
+	
 
 	// Create Buffer and Array objects
 	unsigned int VAO, VBO, EBO;
 	glGenVertexArrays(1, &VAO);
-	glGenBuffers(1, &VBO);
-	glGenBuffers(1, &EBO);
-	
 	glBindVertexArray(VAO);
 	
+	glGenBuffers(1, &VBO);
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
+	
+	glGenBuffers(1, &EBO);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-
+	
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
 
     // note that this is allowed, the call to glVertexAttribPointer registered VBO as the vertex attribute's bound vertex buffer object so afterwards we can safely unbind
     glBindBuffer(GL_ARRAY_BUFFER, 0); 
-
     // remember: do NOT unbind the EBO while a VAO is active as the bound element buffer object IS stored in the VAO; keep the EBO bound.
     //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
@@ -171,7 +155,9 @@ int main(int argc, char **argv)
 	
 	// LETS MAKE THE GOD-FORSAKEN WINDOW DO SOMETHING
 	// Main loop
+	// =================================================================
 	glClearColor(0.25f, 0.3f, 0.3f, 1.0f);
+	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	while(!glfwWindowShouldClose(window))
 	{
 		// input
@@ -181,10 +167,17 @@ int main(int argc, char **argv)
 		
 		// Clears the Screen
 		glClear(GL_COLOR_BUFFER_BIT);
+
+		// Update the transform matrix
+		glm::mat4 trans = glm::mat4(1.0f);
+		trans = glm::rotate(trans, (float)glfwGetTime(), glm::vec3(0.0f, 1.0f, 0.0f));
+		trans = glm::rotate(trans, glm::radians(40.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+
+		baseShader.use();
+		baseShader.setTransform("transform", trans);
 		
-		glUseProgram(shaderProgram);
 		glBindVertexArray(VAO);
-		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+		glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
 		glBindVertexArray(0);
 		
 		// check and call events and swap the buffers

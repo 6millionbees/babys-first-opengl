@@ -29,8 +29,10 @@ long_line_column=72
 
 [files]
 current_page=0
-FILE_NAME_0=4153;C++;0;EUTF-8;1;1;0;%2Fhome%2Fmillionbees%2FDocuments%2Fcode%2Fcpp%2Fprojects%2Fbabys-first-opengl%2Fmain.cxx;0;4
-FILE_NAME_1=121;GLSL;0;EUTF-8;1;1;0;%2Fhome%2Fmillionbees%2FDocuments%2Fcode%2Fcpp%2Fprojects%2Fbabys-first-opengl%2Fshaders%2Fvertex.glsl;0;2
+FILE_NAME_0=5379;C++;0;EUTF-8;1;1;0;%2Fhome%2Fmillionbees%2FDocuments%2Fcode%2Fcpp%2Fprojects%2Fbabys-first-opengl%2Fmain.cxx;0;4
+FILE_NAME_1=3178;C++;0;EUTF-8;1;1;0;%2Fhome%2Fmillionbees%2FDocuments%2Fcode%2Fcpp%2Fprojects%2Fbabys-first-opengl%2Finclude%2Fmine%2Fshader_s.h;0;4
+FILE_NAME_2=99;GLSL;0;EUTF-8;1;1;0;%2Fhome%2Fmillionbees%2FDocuments%2Fcode%2Fcpp%2Fprojects%2Fbabys-first-opengl%2Fshaders%2Ffragment.glsl;0;4
+FILE_NAME_3=93;GLSL;0;EUTF-8;1;1;0;%2Fhome%2Fmillionbees%2FDocuments%2Fcode%2Fcpp%2Fprojects%2Fbabys-first-opengl%2Fshaders%2Fvertex.glsl;0;4
 
 [VTE]
 last_dir=/home/millionbees/Documents/code/cpp/projects/babys-first-opengl
